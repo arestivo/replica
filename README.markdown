@@ -24,10 +24,9 @@ Usage
 	Example: replica -d backups -s /home/johndoe/Documents/ -t work -v
 
 		Creates an incremental backup of /home/johndoe/Documents/work in 
-		./backups/work and stores the backup log in ./backups/.backups.log
+		./backups/work and stores the backup log in ./backups/.replica.log
 
-	Example: replica -d backups -s johndoe@work:~/Documents/ -t stuff -v -b replica.log
+	Example: replica -d backups -s johndoe@work:~/Documents/ -t stuff -v -b backup.log
 
 		Creates an incremental backup of /home/johndoe/Documents/stuff
 		found at server work in ./backups/stuff and stores the backup log 
-		in replica.log
