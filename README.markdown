@@ -11,7 +11,7 @@ Usage
 
 	Usage: replica -d <destroot> [-s <sourceroot>] -t <target> [-v] [-b <logfile>]
 
-		-d 	Directory where backups and log files will be created (unless -b is used.
+		-d 	Directory where backups and log files will be created (unless -b is used).
 		-s	Directory where source target can be found. Can be a remote location 
 			using ssh. If source is a remote location we cannot verify if contents 
 			have changed before executing the rsync command and a new directory will 
