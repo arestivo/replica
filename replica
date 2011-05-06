@@ -5,6 +5,8 @@ SOURCEROOT=
 DESTROOT=
 LOGFILE=
 VERBOSE=
+RETRIES="0"
+WAIT="3600"
 EXTRAOPTIONS="--quiet"
 STARTTIME=`date +%s`
 
@@ -12,7 +14,7 @@ function printhelp() {
 cat << EOF
 replica 0.1 by André Restivo (andre.restivo@gmail.com)
 
-Usage: replica -d <destroot> [-s <sourceroot>] -t <target> [-v] [-b <logfile>]
+Usage: replica -d <destroot> [-s <sourceroot>] -t <target> [-v] [-b <logfile>] [-r <retries>] [-w <wait]
 
 	-d 	Directory where backups and log files will be created (unless -b is used).
 	-s	Directory where source target can be found. Can be a remote location 
@@ -20,6 +22,9 @@ Usage: replica -d <destroot> [-s <sourceroot>] -t <target> [-v] [-b <logfile>]
 		have changed before executing the rsync command and a new directory will 
 		always be created. Default: current directory.
 	-t	Source target.
+	-b 	Alternative log file.
+	-r 	How many times to retry a remote rsync. Default: 0
+	-w 	How many seconds to wait between retries. Default: 3600
 	-b 	Alternative log file.
 	-v	Detailed output for testing
 	-h	This help message.
@@ -38,12 +43,14 @@ Example: replica -d backups -s johndoe@work:~/Documents/ -t stuff -v -b backup.l
 EOF
 }
 
-while getopts "s:d:t:b:vh" option; do
+while getopts "s:d:t:b:r:w:vh" option; do
 	case "$option" in
 		s) SOURCEROOT="$OPTARG";;
 		d) DESTROOT="$OPTARG";;
 		t) TARGET="$OPTARG";;
 		b) LOGFILE="$OPTARG";;
+		r) RETRIES="$OPTARG";;
+		w) WAIT="$OPTARG";;
 		v) VERBOSE="0";;
 		h) printhelp; exit 0;;
 		\?) echo "Usage: replica -d <destroot> [-s <sourceroot>] -t <target> [-v]"; exit 1;;
@@ -101,19 +108,32 @@ if [ "$VERBOSE" == "0" ]; then
 	echo "rsync $EXTRAOPTIONS --inplace --archive --delete --link-dest $DEST$PREVIOUS/ $SOURCE $DEST$DATE.incomplete/"
 fi
 
-rsync $EXTRAOPTIONS --inplace --archive --delete --link-dest $DEST$PREVIOUS $SOURCE $DEST$DATE.incomplete/
+until [ $RETRIES == "-1" ]; do
 
-if [ $? -eq 0 ]; then 
-	ENDTIME=`date +%s` ; TIMEELAPSED=$((ENDTIME - STARTTIME))
-	mv $DEST$DATE.incomplete $DEST$DATE
-	SIZE=`du --si --summarize $DEST$DATE | awk '{print $1}'`
-	if [ "$PREVIOUS" != "" ]; then 
-		echo "[$TARGET] $DATE ($SIZE): Incremental backup from $PREVIOUS complete ($TIMEELAPSED s)" >> $LOGFILE
+	rsync $EXTRAOPTIONS --inplace --archive --delete --link-dest $DEST$PREVIOUS $SOURCE $DEST$DATE.incomplete/
+
+	if [ $? -eq 0 ]; then 
+		ENDTIME=`date +%s` ; TIMEELAPSED=$((ENDTIME - STARTTIME))
+		mv $DEST$DATE.incomplete $DEST$DATE
+		SIZE=`du --si --summarize $DEST$DATE | awk '{print $1}'`
+		if [ "$PREVIOUS" != "" ]; then 
+			echo "[$TARGET] $DATE ($SIZE): Incremental backup from $PREVIOUS complete ($TIMEELAPSED s)" >> $LOGFILE
+		else
+			echo "[$TARGET] $DATE ($SIZE): Full backup complete ($TIMEELAPSED s)" >> $LOGFILE
+		fi
+		break
 	else
-		echo "[$TARGET] $DATE ($SIZE): Full backup complete ($TIMEELAPSED s)" >> $LOGFILE
+		ENDTIME=`date +%s` ; TIMEELAPSED=$((ENDTIME - STARTTIME))
+		SIZE=`du --si --summarize $DEST$DATE.incomplete | awk '{print $1}'`
+		if [ $RETRIES == "0" ]; then echo "[$TARGET] $DATE ($SIZE): Failed backup ($TIMEELAPSED s) Giving up" >> $LOGFILE;
+		else echo "[$TARGET] $DATE ($SIZE): Failed backup ($TIMEELAPSED s) Retrying in $WAIT s" >> $LOGFILE; fi
 	fi
-else
-	ENDTIME=`date +%s` ; TIMEELAPSED=$((ENDTIME - STARTTIME))
-	SIZE=`du --si --summarize $DEST$DATE.incomplete | awk '{print $1}'`
-	echo "[$TARGET] $DATE ($SIZE): Failed backup ($TIMEELAPSED s)" >> $LOGFILE
-fi
+
+	if [[ $SOURCE != *@* ]]; then
+		break
+	fi
+
+	sleep $WAIT
+	STARTTIME=`date +%s`
+	RETRIES=$(($RETRIES - 1))
+done
