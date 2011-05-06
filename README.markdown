@@ -32,3 +32,21 @@ Usage
 
 		Creates an incremental backup of /home/johndoe/Documents/stuff
 		found at server work in ./backups/stuff and stores the backup log 
+
+Log Files
+---------
+
+The log file can have lines in the following formats:
+
+	[<target>] <date>.<time> (<size>): Full backup complete (<duration>)
+	[<target>] <date>.<time> (<size>): Incremental backup from <previous> complete (<duration>)
+	[<target>] <date>.<time> (<size>): Failed backup (<duration>) Giving up
+	[<target>] <date>.<time> (<size>): Failed backup (<duration>) Retrying in <wait>
+
+target - the target being backed up
+date - the execution date in the format yyyymmdd
+time - the execution time in the format HHMMss
+size - The size of the backup
+duration - How much time did the operation take
+previous - The directory that served as a base for the incremental backup
+wait - How much time until we retry
