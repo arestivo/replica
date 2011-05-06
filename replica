@@ -61,7 +61,10 @@ if [ "$TARGET" == "" ]; then echo "Error: No target specified"; exit 1; fi
 if [ "$DESTROOT" == "" ]; then echo "Error: No destination root specified"; exit 1; fi
 if [ "$SOURCEROOT" == "" ]; then SOURCEROOT=`pwd`/; fi
 
-#if [ ! -d "$SOURCEROOT" ]; then echo "Error: $SOURCEROOT is not a directory"; exit 1; fi
+if [[ $SOURCEROOT != *@* ]]; then
+	if [ ! -d "$SOURCEROOT" ]; then echo "Error: $SOURCEROOT is not a directory"; exit 1; fi
+fi
+if [[ $DESTROOT == *@* ]]; then echo "Error: $DESTROOT is not a local path"; exit 1; fi
 if [ ! -d "$DESTROOT" ]; then mkdir -p $DESTROOT; fi
 if [ ! -d "$DESTROOT" ]; then echo "Error: $DESTROOT is not a directory"; exit 1; fi
 
@@ -124,7 +127,11 @@ until [ $RETRIES == "-1" ]; do
 		break
 	else
 		ENDTIME=`date +%s` ; TIMEELAPSED=$((ENDTIME - STARTTIME))
-		SIZE=`du --si --summarize $DEST$DATE.incomplete | awk '{print $1}'`
+		if [ -d $DEST$DATE.incomplete ]; then
+			SIZE=`du --si --summarize $DEST$DATE.incomplete | awk '{print $1}'`
+		else
+			SIZE="0B"
+		fi
 		if [ $RETRIES == "0" ]; then echo "[$TARGET] $DATE ($SIZE): Failed backup ($TIMEELAPSED s) Giving up" >> $LOGFILE;
 		else echo "[$TARGET] $DATE ($SIZE): Failed backup ($TIMEELAPSED s) Retrying in $WAIT s" >> $LOGFILE; fi
 	fi
@@ -133,7 +140,9 @@ until [ $RETRIES == "-1" ]; do
 		break
 	fi
 
-	sleep $WAIT
-	STARTTIME=`date +%s`
+	if [ $RETRIES != "0" ]; then 
+		sleep $WAIT
+		STARTTIME=`date +%s`
+	fi
 	RETRIES=$(($RETRIES - 1))
 done
