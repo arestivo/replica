@@ -1,0 +1,79 @@
+#!/bin/bash
+
+TARGET=
+SOURCEROOT=
+DESTROOT=
+VERBOSE=
+EXTRAOPTIONS="--quiet"
+STARTTIME=`date +%s`
+
+while getopts "s:d:t:v" option; do
+	case "$option" in
+		s) SOURCEROOT="$OPTARG";;
+		d) DESTROOT="$OPTARG";;
+		t) TARGET="$OPTARG";;
+		v) VERBOSE="0";;
+		\?) echo "Usage: replica -d <destroot> [-s <sourceroot>] -t <target> [-v]"; exit 1;;
+	esac
+done
+
+if [ "$TARGET" == "" ]; then echo "Error: No target specified"; exit 1; fi
+if [ "$DESTROOT" == "" ]; then echo "Error: No destination root specified"; exit 1; fi
+if [ "$SOURCEROOT" == "" ]; then SOURCEROOT=`pwd`/; fi
+
+if [ ! -d "$SOURCEROOT" ]; then echo "Error: $SOURCEROOT is not a directory"; exit 1; fi
+if [ ! -d "$DESTROOT" ]; then mkdir -p $DESTROOT; fi
+if [ ! -d "$DESTROOT" ]; then echo "Error: $DESTROOT is not a directory"; exit 1; fi
+
+SOURCEROOT=`cd $SOURCEROOT; pwd`
+DESTROOT=`cd $DESTROOT; pwd`
+
+SOURCE=$SOURCEROOT/$TARGET/
+DEST=$DESTROOT/$TARGET/
+
+if [ "$VERBOSE" == "0" ]; then
+	echo "$SOURCE -> $DEST"
+	EXTRAOPTIONS="--verbose --progress"
+fi
+
+#exit 0
+
+if [ ! -d $DEST ]; then mkdir -p $DEST; fi
+
+# Get current date
+DATE=`date +%Y%m%d.%H%M%S`
+
+# Get date of last backup
+PREVIOUS=`find $DEST -maxdepth 1 -printf "%P\n" | grep "[0-9]\{8\}.[0-9]\{6\}" | sort | tail -1`
+
+SHAOLD=`find $DEST$PREVIOUS -printf "%P %s \n" | sort | sha1sum`
+SHANEW=`find $SOURCE -printf "%P %s \n" | sort | sha1sum`
+
+if [ "$SHANEW" == "$SHAOLD" ]; then
+	ENDTIME=`date +%s` ; TIMEELAPSED=$((ENDTIME - STARTTIME))
+	SIZE=`du --si --summarize $DEST$PREVIOUS | awk '{print $1}'`
+	echo "[$TARGET] $DATE ($SIZE): Nothing to be done ($TIMEELAPSED s)" >> $DESTROOT/.backup.log
+	if [ "$VERBOSE" == "0" ]; then echo "Nothing to be done"; fi
+	exit 0
+fi
+
+if [ "$VERBOSE" == "0" ]; then
+	echo "rsync $EXTRAOPTIONS --inplace --archive --delete --link-dest $DEST$PREVIOUS/ $SOURCE $DEST$DATE.incomplete/"
+fi
+
+rsync $EXTRAOPTIONS --inplace --archive --delete --link-dest $DEST$PREVIOUS $SOURCE $DEST$DATE.incomplete/
+
+if [ $? -eq 0 ]; then 
+	ENDTIME=`date +%s` ; TIMEELAPSED=$((ENDTIME - STARTTIME))
+	mv $DEST$DATE.incomplete $DEST$DATE
+	SIZE=`du --si --summarize $DEST$DATE | awk '{print $1}'`
+	if [ "$PREVIOUS" != "" ]; then 
+		echo "[$TARGET] $DATE ($SIZE): Incremental backup from $PREVIOUS complete ($TIMEELAPSED s)" >> $DESTROOT/.backup.log
+	else
+		echo "[$TARGET] $DATE ($SIZE): Full backup complete ($TIMEELAPSED s)" >> $DESTROOT/.backup.log
+	fi
+else
+	ENDTIME=`date +%s` ; TIMEELAPSED=$((ENDTIME - STARTTIME))
+	SIZE=`du --si --summarize $DEST$DATE.incomplete | awk '{print $1}'`
+	echo "[$TARGET] $DATE ($SIZE): Failed backup ($TIMEELAPSED s)" >> $DESTROOT/.backup.log
+fi
