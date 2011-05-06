@@ -7,12 +7,43 @@ VERBOSE=
 EXTRAOPTIONS="--quiet"
 STARTTIME=`date +%s`
 
-while getopts "s:d:t:v" option; do
+function printhelp() {
+cat << EOF
+replica 0.1 by André Restivo (andre.restivo@gmail.com)
+
+Usage: replica -d <destroot> [-s <sourceroot>] -t <target> [-v]
+
+	-d 	Directory where backups and log files will be created.
+	-s	Directory where source target can be found. Can be a remote
+		location using ssh. If source is a remote location we can 
+		verify if contents have changed before executing the rsync
+		command and a new directory will always be created.
+		Default: current directory.
+	-t	Source target.
+	-v	Detailed output for testing
+	-h	This help message.
+
+Example: replica -d backups -s /home/johndoe/Documents/ -t work -v
+
+	Creates an incremental backup of /home/johndoe/Documents/work in 
+	./backups/work and stores the backup log in ./backups
+
+Example: replica -d backups -s johndoe@work:~/Documents/ -t stuff -v
+
+	Creates an incremental backup of /home/johndoe/Documents/stuff
+	found at server work in ./backups/stuff and stores the backup log 
+	in ./backups
+
+EOF
+}
+
+while getopts "s:d:t:vh" option; do
 	case "$option" in
 		s) SOURCEROOT="$OPTARG";;
 		d) DESTROOT="$OPTARG";;
 		t) TARGET="$OPTARG";;
 		v) VERBOSE="0";;
+		h) printhelp; exit 0;;
 		\?) echo "Usage: replica -d <destroot> [-s <sourceroot>] -t <target> [-v]"; exit 1;;
 	esac
 done
@@ -47,7 +78,10 @@ DATE=`date +%Y%m%d.%H%M%S`
 PREVIOUS=`find $DEST -maxdepth 1 -printf "%P\n" | grep "[0-9]\{8\}.[0-9]\{6\}" | sort | tail -1`
 
 SHAOLD=`find $DEST$PREVIOUS -printf "%P %s \n" | sort | sha1sum`
-SHANEW=`find $SOURCE -printf "%P %s \n" | sort | sha1sum`
+
+if [[ $SOURCE != *@* ]]; then
+	SHANEW=`find $SOURCE -printf "%P %s \n" | sort | sha1sum`
+fi
 
 if [ "$SHANEW" == "$SHAOLD" ]; then
 	ENDTIME=`date +%s` ; TIMEELAPSED=$((ENDTIME - STARTTIME))
