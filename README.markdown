@@ -43,10 +43,10 @@ The log file can have lines in the following formats:
 	[<target>] <date>.<time> (<size>): Failed backup (<duration>) Giving up
 	[<target>] <date>.<time> (<size>): Failed backup (<duration>) Retrying in <wait>
 
-target - the target being backed up
-date - the execution date in the format yyyymmdd
-time - the execution time in the format HHMMss
-size - The size of the backup
-duration - How much time did the operation take
-previous - The directory that served as a base for the incremental backup
-wait - How much time until we retry
+* target - the target being backed up
+* date - the execution date in the format yyyymmdd
+* time - the execution time in the format HHMMss
+* size - The size of the backup
+* duration - How much time did the operation take
+* previous - The directory that served as a base for the incremental backup
+* wait - How much time until we retry
