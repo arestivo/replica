@@ -3,6 +3,7 @@
 TARGET=
 SOURCEROOT=
 DESTROOT=
+LOGFILE=
 VERBOSE=
 EXTRAOPTIONS="--quiet"
 STARTTIME=`date +%s`
@@ -11,37 +12,38 @@ function printhelp() {
 cat << EOF
 replica 0.1 by André Restivo (andre.restivo@gmail.com)
 
-Usage: replica -d <destroot> [-s <sourceroot>] -t <target> [-v]
+Usage: replica -d <destroot> [-s <sourceroot>] -t <target> [-v] [-b <logfile>]
 
-	-d 	Directory where backups and log files will be created.
-	-s	Directory where source target can be found. Can be a remote
-		location using ssh. If source is a remote location we cannot 
-		verify if contents have changed before executing the rsync
-		command and a new directory will always be created.
-		Default: current directory.
+	-d 	Directory where backups and log files will be created (unless -b is used.
+	-s	Directory where source target can be found. Can be a remote location 
+		using ssh. If source is a remote location we cannot verify if contents 
+		have changed before executing the rsync command and a new directory will 
+		always be created. Default: current directory.
 	-t	Source target.
+	-b 	Alternative log file.
 	-v	Detailed output for testing
 	-h	This help message.
 
 Example: replica -d backups -s /home/johndoe/Documents/ -t work -v
 
 	Creates an incremental backup of /home/johndoe/Documents/work in 
-	./backups/work and stores the backup log in ./backups
+	./backups/work and stores the backup log in ./backups/.backups.log
 
-Example: replica -d backups -s johndoe@work:~/Documents/ -t stuff -v
+Example: replica -d backups -s johndoe@work:~/Documents/ -t stuff -v -b replica.log
 
 	Creates an incremental backup of /home/johndoe/Documents/stuff
 	found at server work in ./backups/stuff and stores the backup log 
-	in ./backups
+	in replica.log
 
 EOF
 }
 
-while getopts "s:d:t:vh" option; do
+while getopts "s:d:t:b:vh" option; do
 	case "$option" in
 		s) SOURCEROOT="$OPTARG";;
 		d) DESTROOT="$OPTARG";;
 		t) TARGET="$OPTARG";;
+		b) LOGFILE="$OPTARG";;
 		v) VERBOSE="0";;
 		h) printhelp; exit 0;;
 		\?) echo "Usage: replica -d <destroot> [-s <sourceroot>] -t <target> [-v]"; exit 1;;
@@ -67,6 +69,10 @@ if [ "$VERBOSE" == "0" ]; then
 	EXTRAOPTIONS="--verbose --progress"
 fi
 
+if [ "$LOGFILE" == "" ]; then
+	LOGFILE=$DESTROOT/.backup.log
+fi
+
 #exit 0
 
 if [ ! -d $DEST ]; then mkdir -p $DEST; fi
@@ -86,7 +92,7 @@ fi
 if [ "$SHANEW" == "$SHAOLD" ]; then
 	ENDTIME=`date +%s` ; TIMEELAPSED=$((ENDTIME - STARTTIME))
 	SIZE=`du --si --summarize $DEST$PREVIOUS | awk '{print $1}'`
-	echo "[$TARGET] $DATE ($SIZE): Nothing to be done ($TIMEELAPSED s)" >> $DESTROOT/.backup.log
+	echo "[$TARGET] $DATE ($SIZE): Nothing to be done ($TIMEELAPSED s)" >> $LOGFILE
 	if [ "$VERBOSE" == "0" ]; then echo "Nothing to be done"; fi
 	exit 0
 fi
@@ -102,12 +108,12 @@ if [ $? -eq 0 ]; then
 	mv $DEST$DATE.incomplete $DEST$DATE
 	SIZE=`du --si --summarize $DEST$DATE | awk '{print $1}'`
 	if [ "$PREVIOUS" != "" ]; then 
-		echo "[$TARGET] $DATE ($SIZE): Incremental backup from $PREVIOUS complete ($TIMEELAPSED s)" >> $DESTROOT/.backup.log
+		echo "[$TARGET] $DATE ($SIZE): Incremental backup from $PREVIOUS complete ($TIMEELAPSED s)" >> $LOGFILE
 	else
-		echo "[$TARGET] $DATE ($SIZE): Full backup complete ($TIMEELAPSED s)" >> $DESTROOT/.backup.log
+		echo "[$TARGET] $DATE ($SIZE): Full backup complete ($TIMEELAPSED s)" >> $LOGFILE
 	fi
 else
 	ENDTIME=`date +%s` ; TIMEELAPSED=$((ENDTIME - STARTTIME))
 	SIZE=`du --si --summarize $DEST$DATE.incomplete | awk '{print $1}'`
-	echo "[$TARGET] $DATE ($SIZE): Failed backup ($TIMEELAPSED s)" >> $DESTROOT/.backup.log
+	echo "[$TARGET] $DATE ($SIZE): Failed backup ($TIMEELAPSED s)" >> $LOGFILE
 fi

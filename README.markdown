@@ -9,25 +9,25 @@ Usage
 
 	replica 0.1 by André Restivo (andre.restivo@gmail.com)
 
-	Usage: replica -d <destroot> [-s <sourceroot>] -t <target> [-v]
+	Usage: replica -d <destroot> [-s <sourceroot>] -t <target> [-v] [-b <logfile>]
 
-		-d 	Directory where backups and log files will be created.
-		-s	Directory where source target can be found. Can be a remote
-			location using ssh. If source is a remote location we cannot 
-			verify if contents have changed before executing the rsync
-			command and a new directory will always be created.
-			Default: current directory.
+		-d 	Directory where backups and log files will be created (unless -b is used.
+		-s	Directory where source target can be found. Can be a remote location 
+			using ssh. If source is a remote location we cannot verify if contents 
+			have changed before executing the rsync command and a new directory will 
+			always be created. Default: current directory.
 		-t	Source target.
+		-b 	Alternative log file.
 		-v	Detailed output for testing
 		-h	This help message.
 
 	Example: replica -d backups -s /home/johndoe/Documents/ -t work -v
 
 		Creates an incremental backup of /home/johndoe/Documents/work in 
-		./backups/work and stores the backup log in ./backups
+		./backups/work and stores the backup log in ./backups/.backups.log
 
-	Example: replica -d backups -s johndoe@work:~/Documents/ -t stuff -v
+	Example: replica -d backups -s johndoe@work:~/Documents/ -t stuff -v -b replica.log
 
 		Creates an incremental backup of /home/johndoe/Documents/stuff
 		found at server work in ./backups/stuff and stores the backup log 
-		in ./backups
+		in replica.log
