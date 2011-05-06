@@ -13,7 +13,7 @@ Usage
 
 		-d 	Directory where backups and log files will be created.
 		-s	Directory where source target can be found. Can be a remote
-			location using ssh. If source is a remote location we can 
+			location using ssh. If source is a remote location we cannot 
 			verify if contents have changed before executing the rsync
 			command and a new directory will always be created.
 			Default: current directory.
