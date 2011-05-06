@@ -21,11 +21,11 @@ if [ "$TARGET" == "" ]; then echo "Error: No target specified"; exit 1; fi
 if [ "$DESTROOT" == "" ]; then echo "Error: No destination root specified"; exit 1; fi
 if [ "$SOURCEROOT" == "" ]; then SOURCEROOT=`pwd`/; fi
 
-if [ ! -d "$SOURCEROOT" ]; then echo "Error: $SOURCEROOT is not a directory"; exit 1; fi
+#if [ ! -d "$SOURCEROOT" ]; then echo "Error: $SOURCEROOT is not a directory"; exit 1; fi
 if [ ! -d "$DESTROOT" ]; then mkdir -p $DESTROOT; fi
 if [ ! -d "$DESTROOT" ]; then echo "Error: $DESTROOT is not a directory"; exit 1; fi
 
-SOURCEROOT=`cd $SOURCEROOT; pwd`
+#SOURCEROOT=`cd $SOURCEROOT; pwd`
 DESTROOT=`cd $DESTROOT; pwd`
 
 SOURCE=$SOURCEROOT/$TARGET/
