@@ -5,8 +5,9 @@ SOURCEROOT=
 DESTROOT=
 LOGFILE=
 VERBOSE=
-RETRIES="0"
-WAIT="3600"
+RETRIES=0
+WAIT=3600
+
 EXTRAOPTIONS="--quiet"
 STARTTIME=`date +%s`
 
@@ -42,6 +43,10 @@ Example: replica -d backups -s johndoe@work:~/Documents/ -t stuff -v -b backup.l
 
 EOF
 }
+
+if [ -f /etc/replica.conf ]; then
+	source /etc/replica.conf
+fi
 
 while getopts "s:d:t:b:r:w:vh" option; do
 	case "$option" in

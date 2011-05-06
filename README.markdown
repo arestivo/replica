@@ -50,3 +50,17 @@ The log file can have lines in the following formats:
 * duration - How much time did the operation take
 * previous - The directory that served as a base for the incremental backup
 * wait - How much time until we retry
+
+Configuration File
+------------------
+
+Configuration parameters can be specified in a configuration file in /etc/replica.conf using
+the following format:
+
+	TARGET=<target>
+	SOURCEROOT=<source>
+	DESTROOT=<dest>
+	LOGFILE=<file>
+	VERBOSE=<verbosity>		(0 means verbose)
+	RETRIES=<retries>
+	WAIT=<wait>
