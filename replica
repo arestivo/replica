@@ -12,7 +12,7 @@ STARTTIME=`date +%s`
 
 function printhelp() {
 cat << EOF
-replica 0.1 by André Restivo (andre.restivo@gmail.com)
+replica 0.1 by André Restivo (andre.restivo@gmail.com) https://github.com/arestivo/replica
 
 Usage: replica -d <destroot> [-s <sourceroot>] -t <target> [-v] [-b <logfile>] [-r <retries>] [-w <wait]
 
