@@ -14,7 +14,7 @@ function printhelp() {
 cat << EOF
 replica 0.1 by André Restivo (andre.restivo@gmail.com) https://github.com/arestivo/replica
 
-Usage: replica -d <destroot> [-s <sourceroot>] -t <target> [-v] [-b <logfile>] [-r <retries>] [-w <wait]
+Usage: replica -d <destroot> [-s <sourceroot>] -t <target> [-b <logfile>] [-r <retries>] [-w <wait] [-v] [-h]
 
 	-d 	Directory where backups and log files will be created (unless -b is used).
 	-s	Directory where source target can be found. Can be a remote location 
@@ -53,20 +53,20 @@ while getopts "s:d:t:b:r:w:vh" option; do
 		w) WAIT="$OPTARG";;
 		v) VERBOSE="0";;
 		h) printhelp; exit 0;;
-		\?) echo "Usage: replica -d <destroot> [-s <sourceroot>] -t <target> [-v]"; exit 1;;
+		\?) echo "Usage: replica -d <destroot> [-s <sourceroot>] -t <target> [-b <logfile>] [-r <retries>] [-w <wait] [-v] [-h]"; exit 1;;
 	esac
 done
 
-if [ "$TARGET" == "" ]; then echo "Error: No target specified"; exit 1; fi
-if [ "$DESTROOT" == "" ]; then echo "Error: No destination root specified"; exit 1; fi
+if [ "$TARGET" == "" ]; then echo "Error: No target specified. Use -h if you need help."; exit 1; fi
+if [ "$DESTROOT" == "" ]; then echo "Error: No destination root specified. Use -h if you need help."; exit 1; fi
 if [ "$SOURCEROOT" == "" ]; then SOURCEROOT=`pwd`/; fi
 
 if [[ $SOURCEROOT != *@* ]]; then
-	if [ ! -d "$SOURCEROOT" ]; then echo "Error: $SOURCEROOT is not a directory"; exit 1; fi
+	if [ ! -d "$SOURCEROOT" ]; then echo "Error: $SOURCEROOT is not a directory. Use -h if you need help."; exit 1; fi
 fi
-if [[ $DESTROOT == *@* ]]; then echo "Error: $DESTROOT is not a local path"; exit 1; fi
+if [[ $DESTROOT == *@* ]]; then echo "Error: $DESTROOT is not a local path. Use -h if you need help."; exit 1; fi
 if [ ! -d "$DESTROOT" ]; then mkdir -p $DESTROOT; fi
-if [ ! -d "$DESTROOT" ]; then echo "Error: $DESTROOT is not a directory"; exit 1; fi
+if [ ! -d "$DESTROOT" ]; then echo "Error: $DESTROOT is not a directory. Use -h if you need help."; exit 1; fi
 
 #SOURCEROOT=`cd $SOURCEROOT; pwd`
 DESTROOT=`cd $DESTROOT; pwd`

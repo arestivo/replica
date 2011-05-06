@@ -9,7 +9,7 @@ Usage
 
 	replica 0.1 by André Restivo (andre.restivo@gmail.com)
 
-	Usage: replica -d <destroot> [-s <sourceroot>] -t <target> [-v] [-b <logfile>] [-r <retries>] [-w <wait]
+	Usage: replica -d <destroot> [-s <sourceroot>] -t <target> [-b <logfile>] [-r <retries>] [-w <wait] [-v] [-h]
 
 		-d 	Directory where backups and log files will be created (unless -b is used).
 		-s	Directory where source target can be found. Can be a remote location 
