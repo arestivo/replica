@@ -15,7 +15,7 @@ function printhelp() {
 cat << EOF
 replica 0.1 by André Restivo (andre.restivo@gmail.com) https://github.com/arestivo/replica
 
-Usage: replica -d <destroot> [-s <sourceroot>] -t <target> [-b <logfile>] [-r <retries>] [-w <wait] [-v] [-h]
+Usage: replica -d <destroot> [-s <sourceroot>] -t <target> [OPTIONS]
 
 	-d 	Directory where backups and log files will be created (unless -b is used).
 	-s	Directory where source target can be found. Can be a remote location 
@@ -23,10 +23,12 @@ Usage: replica -d <destroot> [-s <sourceroot>] -t <target> [-b <logfile>] [-r <r
 		have changed before executing the rsync command and a new directory will 
 		always be created. Default: current directory.
 	-t	Source target.
+
+Options:
+
 	-b 	Alternative log file.
 	-r 	How many times to retry a remote rsync. Default: 0
 	-w 	How many seconds to wait between retries. Default: 3600
-	-b 	Alternative log file.
 	-v	Detailed output for testing
 	-h	This help message.
 
@@ -58,7 +60,7 @@ while getopts "s:d:t:b:r:w:vh" option; do
 		w) WAIT="$OPTARG";;
 		v) VERBOSE="0";;
 		h) printhelp; exit 0;;
-		\?) echo "Usage: replica -d <destroot> [-s <sourceroot>] -t <target> [-b <logfile>] [-r <retries>] [-w <wait] [-v] [-h]"; exit 1;;
+		\?) echo "Usage: replica -d <destroot> [-s <sourceroot>] -t <target> [OPTIONS]"; exit 1;;
 	esac
 done
 

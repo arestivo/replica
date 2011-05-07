@@ -9,7 +9,7 @@ Usage
 
 	replica 0.1 by André Restivo (andre.restivo@gmail.com)
 
-	Usage: replica -d <destroot> [-s <sourceroot>] -t <target> [-b <logfile>] [-r <retries>] [-w <wait] [-v] [-h]
+	Usage: replica -d <destroot> [-s <sourceroot>] -t <target> [OPTIONS]
 
 		-d 	Directory where backups and log files will be created (unless -b is used).
 		-s	Directory where source target can be found. Can be a remote location 
@@ -17,6 +17,9 @@ Usage
 			have changed before executing the rsync command and a new directory will 
 			always be created. Default: current directory.
 		-t	Source target.
+
+	Options:
+
 		-b 	Alternative log file.
 		-r 	How many times to retry a remote rsync.
 		-w 	How many seconds to wait between retries.
