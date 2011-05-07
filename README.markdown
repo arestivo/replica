@@ -23,7 +23,7 @@ Usage
 		-b 	Alternative log file.
 		-r 	How many times to retry a remote rsync.
 		-w 	How many seconds to wait between retries.
-		-v	Detailed output for testing
+		-v	Detailed output for testing.
 		-h	This help message.
 
 	Example: replica -d backups -s /home/johndoe/Documents/ -t work -v
