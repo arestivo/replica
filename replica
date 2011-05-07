@@ -5,6 +5,7 @@ SOURCEROOT=
 DESTROOT=
 LOGFILE=
 VERBOSE=
+OPTIONS=
 RETRIES=0
 WAIT=3600
 
@@ -30,6 +31,7 @@ Options:
 	-r 	How many times to retry a remote rsync. Default: 0
 	-w 	How many seconds to wait between retries. Default: 3600
 	-v	Detailed output for testing.
+	-o	Print current options and do nothing.
 	-h	This help message.
 
 Example: replica -d backups -s /home/johndoe/Documents/ -t work -v
@@ -50,7 +52,7 @@ if [ -f /etc/replica.conf ]; then
 	source /etc/replica.conf
 fi
 
-while getopts "s:d:t:b:r:w:vh" option; do
+while getopts "s:d:t:b:r:w:voh" option; do
 	case "$option" in
 		s) SOURCEROOT="$OPTARG";;
 		d) DESTROOT="$OPTARG";;
@@ -59,10 +61,23 @@ while getopts "s:d:t:b:r:w:vh" option; do
 		r) RETRIES="$OPTARG";;
 		w) WAIT="$OPTARG";;
 		v) VERBOSE="0";;
+		o) OPTIONS="0";;
 		h) printhelp; exit 0;;
 		\?) echo "Usage: replica -d <destroot> [-s <sourceroot>] -t <target> [OPTIONS]"; exit 1;;
 	esac
 done
+
+if [ "$OPTIONS" == "0" ]; then
+	echo "source = $SOURCEROOT"
+	echo "target = $TARGET"
+	echo "destination = $DESTROOT"
+	echo "log = $LOGFILE"
+	if [[ $VERBOSE == 0 ]]; then echo "verbose = true"
+	else echo "verbose = false"; fi
+	echo "retries = $RETRIES"
+	echo "wait = $WAIT s"
+	exit 0
+fi
 
 if [ "$TARGET" == "" ]; then echo "Error: No target specified. Use -h if you need help."; exit 1; fi
 if [ "$DESTROOT" == "" ]; then echo "Error: No destination root specified. Use -h if you need help."; exit 1; fi
@@ -90,15 +105,13 @@ if [ "$LOGFILE" == "" ]; then
 	LOGFILE=$DESTROOT/.replica.log
 fi
 
-#exit 0
-
 if [ ! -d $DEST ]; then mkdir -p $DEST; fi
 
 # Get current date
 DATE=`date +%Y%m%d.%H%M%S`
 
 # Get date of last backup
-PREVIOUS=`find $DEST -maxdepth 1 -printf "%P\n" | grep "[0-9]\{8\}.[0-9]\{6\}" | sort | tail -1`
+PREVIOUS=`find $DEST -maxdepth 1 -printf "%P\n" | grep "[0-9]\{8\}.[0-9]\{6\}" | grep -v incomplete | sort | tail -1`
 
 SHAOLD=`find $DEST$PREVIOUS -printf "%P %s \n" | sort | sha1sum`
 

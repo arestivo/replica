@@ -24,6 +24,7 @@ Usage
 		-r 	How many times to retry a remote rsync.
 		-w 	How many seconds to wait between retries.
 		-v	Detailed output for testing.
+		-o 	Print current options but do nothing.
 		-h	This help message.
 
 	Example: replica -d backups -s /home/johndoe/Documents/ -t work -v
