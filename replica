@@ -110,18 +110,18 @@ if [ ! -d $DEST ]; then mkdir -p $DEST; fi
 # Get current date
 DATE=`date +%Y%m%d.%H%M%S`
 
-# Get date of last backup
-PREVIOUS=`find $DEST -maxdepth 1 -printf "%P\n" | grep "[0-9]\{8\}.[0-9]\{6\}" | grep -v incomplete | sort | tail -1`
-
-SHAOLD=`find $DEST$PREVIOUS -printf "%P %s \n" | sort | sha1sum`
-
-if [[ $SOURCE != *@* ]]; then
-	SHANEW=`find $SOURCE -printf "%P %s \n" | sort | sha1sum`
-fi
+# Get date of last backup                                                                                     
+PREVIOUS=`ls -a1 $DEST | grep "[0-9]\{8\}.[0-9]\{6\}" | grep -v incomplete | sort | tail -1`                                  
+                                                                                                                     
+SHAOLD=`cd $DEST$PREVIOUS ; ls -as1R | sha1sum`                                                                           
+                                                                                                                     
+if [[ $SOURCE != *@* ]]; then                                                                                        
+        SHANEW=`cd $SOURCE; ls -a1sR | sha1sum`                                                                          
+fi 
 
 if [ "$SHANEW" == "$SHAOLD" ]; then
 	ENDTIME=`date +%s` ; TIMEELAPSED=$((ENDTIME - STARTTIME))
-	SIZE=`du --si --summarize $DEST$PREVIOUS | awk '{print $1}'`
+	SIZE=`du -h -s $DEST$PREVIOUS | awk '{print $1}'`
 	echo "[$TARGET] $DATE ($SIZE): Nothing to be done ($TIMEELAPSED s)" >> $LOGFILE
 	if [ "$VERBOSE" == "0" ]; then echo "Nothing to be done"; fi
 	exit 0
@@ -138,7 +138,7 @@ until [ $RETRIES == "-1" ]; do
 	if [ $? -eq 0 ]; then 
 		ENDTIME=`date +%s` ; TIMEELAPSED=$((ENDTIME - STARTTIME))
 		mv $DEST$DATE.incomplete $DEST$DATE
-		SIZE=`du --si --summarize $DEST$DATE | awk '{print $1}'`
+		SIZE=`du -h -s $DEST$DATE | awk '{print $1}'`
 		if [ "$PREVIOUS" != "" ]; then 
 			echo "[$TARGET] $DATE ($SIZE): Incremental backup from $PREVIOUS complete ($TIMEELAPSED s)" >> $LOGFILE
 		else
@@ -148,7 +148,7 @@ until [ $RETRIES == "-1" ]; do
 	else
 		ENDTIME=`date +%s` ; TIMEELAPSED=$((ENDTIME - STARTTIME))
 		if [ -d $DEST$DATE.incomplete ]; then
-			SIZE=`du --si --summarize $DEST$DATE.incomplete | awk '{print $1}'`
+			SIZE=`du -h -s $DEST$DATE.incomplete | awk '{print $1}'`
 		else
 			SIZE="0B"
 		fi
