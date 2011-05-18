@@ -111,8 +111,8 @@ if [ ! -d $DEST ]; then mkdir -p $DEST; fi
 DATE=`date +%Y%m%d.%H%M%S`
 
 # Get date of last backup                                                                                     
-PREVIOUS=`ls -a1 $DEST | grep "[0-9]\{8\}.[0-9]\{6\}" | grep -v incomplete | sort | tail -1`                                  
-                                                                                                                     
+PREVIOUS=`ls -a1 $DEST | grep "[0-9]\{8\}.[0-9]\{6\}" | grep -v incomplete | sort | tail -n 1`
+                       
 CHANGES=`rsync --stats --dry-run --inplace --archive --delete --link-dest $DEST$PREVIOUS $SOURCE $DEST$DATE.incomplete/ | grep "files transferred" | awk '{print $5}'`
 
 if [ "$CHANGES" == "0" ]; then
